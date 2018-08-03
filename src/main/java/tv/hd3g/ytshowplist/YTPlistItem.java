@@ -31,11 +31,11 @@ import com.webfirmframework.wffweb.tag.html.images.Img;
 import com.webfirmframework.wffweb.tag.html.links.A;
 import com.webfirmframework.wffweb.tag.htmlwff.NoTag;
 
-public class YTPlistItem {
+public class YTPlistItem implements Comparable<YTPlistItem> {
 	
 	static final Type type_al_YTPlistItem = new TypeToken<ArrayList<YTPlistItem>>() {}.getType();
 	
-	// private int absolute_pos;
+	private int absolute_pos;
 	private String videoid;
 	private String title;
 	// private String descr;
@@ -45,7 +45,7 @@ public class YTPlistItem {
 	}
 	
 	public YTPlistItem(int absolute_pos, String videoid, String title, String descr) {
-		// this.absolute_pos = absolute_pos;
+		this.absolute_pos = absolute_pos;
 		this.videoid = videoid;
 		this.title = title;
 		// this.descr = descr;
@@ -71,6 +71,10 @@ public class YTPlistItem {
 				};
 			}
 		};
+	}
+	
+	public int compareTo(YTPlistItem o) {
+		return absolute_pos - o.absolute_pos;
 	}
 	
 	/*
