@@ -52,6 +52,13 @@ import com.webfirmframework.wffweb.tag.html.metainfo.Meta;
 import com.webfirmframework.wffweb.tag.htmlwff.NoTag;
 
 public class Generate {
+	
+	static {
+		if (new File("log4j2.xml").exists()) {
+			System.setProperty("log4j.configurationFile", "log4j2.xml");
+		}
+	}
+	
 	private static final Logger log = LogManager.getLogger();
 	
 	public static void main(String[] args) throws IOException, GeneralSecurityException {
