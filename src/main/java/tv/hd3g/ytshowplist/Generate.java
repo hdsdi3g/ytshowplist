@@ -19,14 +19,17 @@ package tv.hd3g.ytshowplist;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.security.GeneralSecurityException;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
@@ -36,10 +39,16 @@ import org.apache.logging.log4j.Logger;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.webfirmframework.wffweb.tag.html.Body;
+import com.webfirmframework.wffweb.tag.html.H1;
 import com.webfirmframework.wffweb.tag.html.Html;
-import com.webfirmframework.wffweb.tag.html.html5.stylesandsemantics.Article;
+import com.webfirmframework.wffweb.tag.html.attribute.Charset;
+import com.webfirmframework.wffweb.tag.html.attribute.Href;
+import com.webfirmframework.wffweb.tag.html.attribute.Rel;
+import com.webfirmframework.wffweb.tag.html.attribute.global.Lang;
 import com.webfirmframework.wffweb.tag.html.html5.stylesandsemantics.Section;
+import com.webfirmframework.wffweb.tag.html.links.Link;
 import com.webfirmframework.wffweb.tag.html.metainfo.Head;
+import com.webfirmframework.wffweb.tag.html.metainfo.Meta;
 import com.webfirmframework.wffweb.tag.htmlwff.NoTag;
 
 public class Generate {
@@ -62,7 +71,7 @@ public class Generate {
 	}
 	
 	public void make() throws IOException, GeneralSecurityException {
-		List<YTPlistItem> playlist_items;
+		final List<YTPlistItem> playlist_items;
 		
 		if (p.containsKey("offlinefile")) {
 			File offlinefile = new File(p.getProperty("offlinefile"));
@@ -89,31 +98,68 @@ public class Generate {
 			playlist_items = new YoutubePlaylist(p).getLastPlaylistItems();
 		}
 		
-		List<Article> articles = new ArrayList<>();
+		String css_uri = "style.css";
+		File css_file = new File(p.getProperty("outfile.css", "style.css")).getCanonicalFile();
 		
-		Section section = new Section(null);
+		if (css_file.exists() == false) {
+			throw new FileNotFoundException("Can't found css file: " + css_file.getAbsolutePath());
+		}
 		
-		Html html = new Html(null) {
+		/*<!doctype html>
+		<html lang="fr">
+		<head>
+		<meta charset="utf-8">
+		<title>Titre de la page</title>
+		<link rel="stylesheet" href="style.css">
+		<script src="script.js"></script>
+		</head>
+		<body>
+		*/
+		
+		Html html = new Html(null, new Lang(Locale.getDefault())) {
 			{
-				new Head(this);
+				new Head(this) {
+					{
+						new Meta(this, new Charset(StandardCharsets.UTF_8.toString().toLowerCase()));
+						new Link(this, new Rel("stylesheet"), new Href(css_uri));
+					}
+				};
 				new Body(this) {
 					{
-						new NoTag(this, "Hello World");
-						section.getChildren();
+						new H1(this) {
+							{
+								new NoTag(this, "Derniers favoris Youtube");
+							}
+						};
+						
+						new Section(this) {
+							{
+								playlist_items.stream().map(pi -> pi.getView(this)).collect(Collectors.toUnmodifiableList());
+							}
+						};
 					}
 				};
 			}
 		};
+		html.setCharset(StandardCharsets.UTF_8);
+		html.setDocTypeTag("html");
 		
-		File outfile = new File(p.getProperty("outfile", "index.html"));
+		File outfile = new File(p.getProperty("outfile", "index.html")).getCanonicalFile();
 		log.info("Save to " + outfile.getAbsolutePath());
-		// <section> <article />
 		
 		FileOutputStream fos = new FileOutputStream(outfile);
 		html.toOutputStream(fos, StandardCharsets.UTF_8);
 		fos.close();
 		
-		// TODO Auto-generated method stub
+		if (outfile.getParentFile().equals(css_file.getParentFile()) == false) {
+			/**
+			 * Copy css file side to index file.
+			 */
+			File css_dest = new File(outfile.getParentFile() + File.separator + css_uri);
+			log.info("Deploy css file to " + css_dest.getParent());
+			Files.copy(css_file.toPath(), css_dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
+		}
 		
 	}
+	
 }

@@ -1,0 +1,48 @@
+body {
+	font-family: Roboto, Arial, sans-serif;
+	background-color: #fafafa;
+}
+
+a:link {
+    text-decoration: none;
+}
+
+a:visited {
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+a:active {
+    text-decoration: underline;
+}
+
+article {
+	overflow: hidden;
+	margin: 10px;
+}
+
+article:first-child {
+	margin-top: 0;
+}
+
+article a.thum {
+	float: left;
+	text-decoration: none;
+	margin-right: 10px;
+}
+
+article a img {
+	width: 180px;
+	margin-top: 0px;
+	display: block;
+	vertical-align: middle;
+}
+
+article h3 {
+	font-weight: 500;
+	font-size: 1.3rem;
+	overflow: hidden;
+}

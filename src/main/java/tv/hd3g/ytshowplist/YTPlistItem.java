@@ -20,26 +20,57 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 
 import com.google.common.reflect.TypeToken;
+import com.webfirmframework.wffweb.tag.html.AbstractHtml;
+import com.webfirmframework.wffweb.tag.html.H3;
+import com.webfirmframework.wffweb.tag.html.attribute.Href;
+import com.webfirmframework.wffweb.tag.html.attribute.Src;
+import com.webfirmframework.wffweb.tag.html.attribute.Target;
+import com.webfirmframework.wffweb.tag.html.attribute.global.ClassAttribute;
+import com.webfirmframework.wffweb.tag.html.html5.stylesandsemantics.Article;
+import com.webfirmframework.wffweb.tag.html.images.Img;
+import com.webfirmframework.wffweb.tag.html.links.A;
+import com.webfirmframework.wffweb.tag.htmlwff.NoTag;
 
 public class YTPlistItem {
 	
-	static final Type type_al_YTPlistItem = new TypeToken<ArrayList<YTPlistItem>>() {
-	}.getType();
+	static final Type type_al_YTPlistItem = new TypeToken<ArrayList<YTPlistItem>>() {}.getType();
 	
-	private int absolute_pos;
+	// private int absolute_pos;
 	private String videoid;
 	private String title;
-	private String descr;
+	// private String descr;
 	
 	protected YTPlistItem() {
 		
 	}
 	
 	public YTPlistItem(int absolute_pos, String videoid, String title, String descr) {
-		this.absolute_pos = absolute_pos;
+		// this.absolute_pos = absolute_pos;
 		this.videoid = videoid;
 		this.title = title;
-		this.descr = descr;
+		// this.descr = descr;
+	}
+	
+	public AbstractHtml getView(AbstractHtml parent) {
+		return new Article(parent) {
+			{
+				new A(this, new ClassAttribute("thum"), new Target("_blank"), new Href("https://www.youtube.com/watch?v=" + videoid)) {
+					{
+						new Img(this, new Src("https://i.ytimg.com/vi/" + videoid + "/mqdefault.jpg"));
+					}
+				};
+				
+				new H3(this) {
+					{
+						new A(this, new Target("_blank"), new Href("https://www.youtube.com/watch?v=" + videoid)) {
+							{
+								new NoTag(this, title);
+							}
+						};
+					}
+				};
+			}
+		};
 	}
 	
 	/*
@@ -69,7 +100,5 @@ public class YTPlistItem {
 	  "width" : 640
 	}
 	* */
-	
-	// TODO make
 	
 }
