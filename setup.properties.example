@@ -1,1 +1,13 @@
-youtube.apikey=YOUR_SIMPLE_API_KEY_HERE
+java.util.logging.manager=org.apache.logging.log4j.jul.LogManager
+youtube.datastore=credentials
+youtube.appname=API Sample
+youtube.clientid=clientid.json
+
+#youtube.apikey=YOUR_SIMPLE_API_KEY_HERE
+youtube.channeltitle=xxxxxxxxxxx
+#youtube.channelid=XXXXXXXXXXX-xxxxxxxxxx
+#youtube.playlistid=XXXXXXXXXXXX-xxxxxxxx
+
+youtube.lastitemcount=15
+offlinefile=offline.json
+outfile=index.html

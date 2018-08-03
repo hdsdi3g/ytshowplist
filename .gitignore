@@ -5,3 +5,5 @@ Thumbs.db
 clientid.json
 setup.properties
 credentials/
+offline.json
+index.html

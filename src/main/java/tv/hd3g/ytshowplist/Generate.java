@@ -16,24 +16,104 @@
 */
 package tv.hd3g.ytshowplist;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+import java.util.stream.Collectors;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.services.plus.Plus;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.webfirmframework.wffweb.tag.html.Body;
+import com.webfirmframework.wffweb.tag.html.Html;
+import com.webfirmframework.wffweb.tag.html.html5.stylesandsemantics.Article;
+import com.webfirmframework.wffweb.tag.html.html5.stylesandsemantics.Section;
+import com.webfirmframework.wffweb.tag.html.metainfo.Head;
+import com.webfirmframework.wffweb.tag.htmlwff.NoTag;
 
 public class Generate {
-	
 	private static final Logger log = LogManager.getLogger();
 	
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-		
-		GoogleCredential credential = new GoogleCredential().setAccessToken(""); // XXX ?
-		Plus plus = new Plus.Builder(new NetHttpTransport(), JacksonFactory.getDefaultInstance(), credential).setApplicationName("Google-PlusSample/1.0").build();
-		
+	public static void main(String[] args) throws IOException, GeneralSecurityException {
+		Properties p = System.getProperties();
+		p.load(new FileReader(new File("setup.properties")));
+		new Generate(p).make();
 	}
 	
+	private final Properties p;
+	private final Gson gson;
+	
+	public Generate(Properties p) {
+		this.p = p;
+		GsonBuilder gb = new GsonBuilder();
+		gb.serializeNulls();
+		gson = gb.create();
+	}
+	
+	public void make() throws IOException, GeneralSecurityException {
+		List<YTPlistItem> playlist_items;
+		
+		if (p.containsKey("offlinefile")) {
+			File offlinefile = new File(p.getProperty("offlinefile"));
+			
+			log.debug("Switch to offline mode: {}", offlinefile.getAbsolutePath());
+			
+			if (offlinefile.exists() == false) {
+				log.info("Create offline file: {}", offlinefile.getPath());
+				
+				String offline_content = gson.toJson(new YoutubePlaylist(p).getLastPlaylistItems());
+				BufferedWriter writer = new BufferedWriter(new FileWriter(offlinefile));
+				writer.write(offline_content);
+				writer.close();
+			}
+			
+			log.info("Load offline file: {}", offlinefile.getPath());
+			
+			BufferedReader reader = new BufferedReader(new FileReader(offlinefile));
+			String offline_content = reader.lines().collect(Collectors.joining(" "));
+			reader.close();
+			
+			playlist_items = gson.fromJson(offline_content, YTPlistItem.type_al_YTPlistItem);
+		} else {
+			playlist_items = new YoutubePlaylist(p).getLastPlaylistItems();
+		}
+		
+		List<Article> articles = new ArrayList<>();
+		
+		Section section = new Section(null);
+		
+		Html html = new Html(null) {
+			{
+				new Head(this);
+				new Body(this) {
+					{
+						new NoTag(this, "Hello World");
+						section.getChildren();
+					}
+				};
+			}
+		};
+		
+		File outfile = new File(p.getProperty("outfile", "index.html"));
+		log.info("Save to " + outfile.getAbsolutePath());
+		// <section> <article />
+		
+		FileOutputStream fos = new FileOutputStream(outfile);
+		html.toOutputStream(fos, StandardCharsets.UTF_8);
+		fos.close();
+		
+		// TODO Auto-generated method stub
+		
+	}
 }
