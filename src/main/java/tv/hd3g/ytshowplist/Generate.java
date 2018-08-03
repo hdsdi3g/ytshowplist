@@ -28,6 +28,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.security.GeneralSecurityException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
@@ -45,6 +46,7 @@ import com.webfirmframework.wffweb.tag.html.attribute.Charset;
 import com.webfirmframework.wffweb.tag.html.attribute.Href;
 import com.webfirmframework.wffweb.tag.html.attribute.Rel;
 import com.webfirmframework.wffweb.tag.html.attribute.global.Lang;
+import com.webfirmframework.wffweb.tag.html.attribute.global.Title;
 import com.webfirmframework.wffweb.tag.html.html5.stylesandsemantics.Section;
 import com.webfirmframework.wffweb.tag.html.links.Link;
 import com.webfirmframework.wffweb.tag.html.metainfo.Head;
@@ -112,21 +114,11 @@ public class Generate {
 			throw new FileNotFoundException("Can't found css file: " + css_file.getAbsolutePath());
 		}
 		
-		/*<!doctype html>
-		<html lang="fr">
-		<head>
-		<meta charset="utf-8">
-		<title>Titre de la page</title>
-		<link rel="stylesheet" href="style.css">
-		<script src="script.js"></script>
-		</head>
-		<body>
-		*/
-		
 		Html html = new Html(null, new Lang(Locale.getDefault())) {
 			{
 				new Head(this) {
 					{
+						new Title(p.getProperty("pagetitle", ""));
 						new Meta(this, new Charset(StandardCharsets.UTF_8.toString().toLowerCase()));
 						new Link(this, new Rel("stylesheet"), new Href(css_uri));
 					}
@@ -135,13 +127,13 @@ public class Generate {
 					{
 						new H1(this) {
 							{
-								new NoTag(this, "Derniers favoris Youtube");
+								new NoTag(this, p.getProperty("pagetitle", ""));
 							}
 						};
 						
 						new Section(this) {
 							{
-								playlist_items.stream().map(pi -> pi.getView(this)).collect(Collectors.toUnmodifiableList());
+								playlist_items.stream().sorted(Collections.reverseOrder()).map(pi -> pi.getView(this)).collect(Collectors.toUnmodifiableList());
 							}
 						};
 					}
