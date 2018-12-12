@@ -41,10 +41,10 @@ public class YoutubePlaylist {
 	private final String playlistid;
 	private final Properties p;
 	
-	public YoutubePlaylist(Properties p) throws IOException, GeneralSecurityException {
+	public YoutubePlaylist(Properties p, File working_dir) throws IOException, GeneralSecurityException {
 		this.p = p;
 		
-		youtube = new YoutubeAPI(p.getProperty("youtube.appname"), new File(p.getProperty("youtube.clientid")), new File(p.getProperty("youtube.datastore"))).youtube;
+		youtube = new YoutubeAPI(p.getProperty("youtube.appname"), new File(p.getProperty("youtube.clientid")), new File(working_dir.getAbsolutePath() + File.separator + p.getProperty("youtube.datastore"))).youtube;
 		
 		if (p.containsKey("youtube.channelid") == false) {
 			if (p.containsKey("youtube.channeltitle") == false) {

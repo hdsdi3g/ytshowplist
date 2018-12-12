@@ -28,6 +28,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.security.GeneralSecurityException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -55,25 +56,36 @@ import com.webfirmframework.wffweb.tag.htmlwff.NoTag;
 
 public class Generate {
 	
-	static {
+	/*static {
 		if (new File("log4j2.xml").exists()) {
 			System.setProperty("log4j.configurationFile", "log4j2.xml");
 		}
-	}
+	}*/
 	
 	private static final Logger log = LogManager.getLogger();
 	
 	public static void main(String[] args) throws IOException, GeneralSecurityException {
 		Properties p = System.getProperties();
-		p.load(new FileReader(new File("setup.properties")));
-		new Generate(p).make();
+		
+		File working_dir = Arrays.stream(((String) p.get("java.class.path")).split(File.pathSeparator)).map(cp -> {
+			return new File(cp);
+		}).filter(cp -> {
+			return cp.isDirectory() && cp.exists() && cp.canRead() && cp.getName().equals("config");
+		}).findFirst().orElseThrow(() -> new FileNotFoundException("config directory in classpath")).getCanonicalFile();
+		
+		log.debug("Use config directory: " + working_dir);
+		
+		p.load(new FileReader(new File(working_dir.getAbsolutePath() + File.separator + "setup.properties")));
+		new Generate(p, working_dir).make();
 	}
 	
 	private final Properties p;
 	private final Gson gson;
+	private final File working_dir;
 	
-	public Generate(Properties p) {
+	public Generate(Properties p, File working_dir) {
 		this.p = p;
+		this.working_dir = working_dir;
 		GsonBuilder gb = new GsonBuilder();
 		gb.serializeNulls();
 		gson = gb.create();
@@ -83,14 +95,14 @@ public class Generate {
 		final List<YTPlistItem> playlist_items;
 		
 		if (p.containsKey("offlinefile")) {
-			File offlinefile = new File(p.getProperty("offlinefile"));
+			File offlinefile = new File(working_dir.getAbsolutePath() + File.separator + p.getProperty("offlinefile"));
 			
 			log.debug("Switch to offline mode: {}", offlinefile.getAbsolutePath());
 			
 			if (offlinefile.exists() == false) {
 				log.info("Create offline file: {}", offlinefile.getPath());
 				
-				String offline_content = gson.toJson(new YoutubePlaylist(p).getLastPlaylistItems());
+				String offline_content = gson.toJson(new YoutubePlaylist(p, working_dir).getLastPlaylistItems());
 				BufferedWriter writer = new BufferedWriter(new FileWriter(offlinefile));
 				writer.write(offline_content);
 				writer.close();
@@ -104,11 +116,11 @@ public class Generate {
 			
 			playlist_items = gson.fromJson(offline_content, YTPlistItem.type_al_YTPlistItem);
 		} else {
-			playlist_items = new YoutubePlaylist(p).getLastPlaylistItems();
+			playlist_items = new YoutubePlaylist(p, working_dir).getLastPlaylistItems();
 		}
 		
 		String css_uri = "style.css";
-		File css_file = new File(p.getProperty("outfile.css", "style.css")).getCanonicalFile();
+		File css_file = new File(working_dir.getAbsolutePath() + File.separator + p.getProperty("outfile.css", "style.css")).getCanonicalFile();
 		
 		if (css_file.exists() == false) {
 			throw new FileNotFoundException("Can't found css file: " + css_file.getAbsolutePath());
